@@ -36,7 +36,9 @@ namespace LandonAPI
             {
                 options.DefaultApiVersion = new ApiVersion(1, 0);
                 options.ApiVersionReader = new MediaTypeApiVersionReader();
-                
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+                options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
             });
         }
 
