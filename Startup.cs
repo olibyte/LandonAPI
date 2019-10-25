@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 using NSwag.AspNetCore;
 
 namespace LandonAPI
@@ -27,10 +28,15 @@ namespace LandonAPI
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
+        //TODO: Swap out for a real database in prod.
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<HotelInfo>(
                 Configuration.GetSection("Info"));
+
+            //Use in-memory database for quick dev and testing
+            services.AddDbContext<HotelApiDbContext>(
+                options => options.UseInMemoryDatabase("landondb"));
 
             services
                 .AddMvc(options =>
