@@ -31,9 +31,6 @@ namespace LandonAPI.Filters
                 error.Detail = context.Exception.Message;
             }
 
-            error.Message = context.Exception.Message;
-            error.Detail = context.Exception.StackTrace;
-
             context.Result = new ObjectResult(error)
             {
                 StatusCode = 500

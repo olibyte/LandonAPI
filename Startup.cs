@@ -32,12 +32,14 @@ namespace LandonAPI
             services.Configure<HotelInfo>(
                 Configuration.GetSection("Info"));
 
-            services.AddMvc(options =>
-            {
-                options.Filters.Add<JsonExceptionFilter>();
-
-                options.Filters.Add<RequireHttpsOrCloseAttribute>();
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services
+                .AddMvc(options =>
+                {
+                    options.Filters.Add<JsonExceptionFilter>();
+                    options.Filters
+                        .Add<RequireHttpsOrCloseAttribute>();
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services
                 .AddRouting(options => options.LowercaseUrls = true);
@@ -45,16 +47,12 @@ namespace LandonAPI
             services.AddApiVersioning(options =>
             {
                 options.DefaultApiVersion = new ApiVersion(1, 0);
-                options.ApiVersionReader = new MediaTypeApiVersionReader();
+                options.ApiVersionReader
+                    = new MediaTypeApiVersionReader();
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.ReportApiVersions = true;
-                options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
-            });
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowMyApp",
-                    policy => policy.AllowAnyOrigin());
+                options.ApiVersionSelector
+                     = new CurrentImplementationApiVersionSelector(options);
             });
         }
 
@@ -67,15 +65,15 @@ namespace LandonAPI
 
                 app.UseSwaggerUi3WithApiExplorer(options =>
                 {
-                    options.GeneratorSettings.DefaultPropertyNameHandling = NJsonSchema.PropertyNameHandling.CamelCase;
+                    options.GeneratorSettings
+                        .DefaultPropertyNameHandling
+                    = NJsonSchema.PropertyNameHandling.CamelCase;
                 });
             }
             else
             {
                 app.UseHsts();
             }
-
-            app.UseCors("AllowMyApp");
 
             app.UseMvc();
         }
