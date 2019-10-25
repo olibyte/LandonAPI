@@ -16,6 +16,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using NSwag.AspNetCore;
 using LandonAPI.Services;
+using AutoMapper;
+using LandonAPI.Infrastructure;
 
 namespace LandonAPI
 {
@@ -63,6 +65,9 @@ namespace LandonAPI
                 options.ApiVersionSelector
                      = new CurrentImplementationApiVersionSelector(options);
             });
+
+            services.AddAutoMapper(
+                options => options.AddProfile<MappingProfile>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
