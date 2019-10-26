@@ -18,7 +18,7 @@ namespace LandonAPI.Controllers
         {
             var response = new RootResponse
             {
-                Href = null, // TODO: Url.Link(nameof(GetRoot), null)
+                Self = Link.To(nameof(GetRoot)),
                 Rooms = Link.To(nameof(RoomsController.GetRooms)),
                 Info = Link.To(nameof(InfoController.GetInfo))
             };
