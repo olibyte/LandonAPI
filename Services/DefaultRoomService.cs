@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using LandonAPI.Models;
+using LandonApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace LandonAPI.Services
+namespace LandonApi.Services
 {
     public class DefaultRoomService : IRoomService
     {
@@ -16,16 +16,17 @@ namespace LandonAPI.Services
 
         public DefaultRoomService(
             HotelApiDbContext context,
-            IConfigurationProvider mappingConfiguration
-            )
+            IConfigurationProvider mappingConfiguration)
         {
             _context = context;
             _mappingConfiguration = mappingConfiguration;
         }
+
         public async Task<Room> GetRoomAsync(Guid id)
         {
             var entity = await _context.Rooms
-                            .SingleOrDefaultAsync(x => x.Id == id);
+                .SingleOrDefaultAsync(x => x.Id == id);
+
             if (entity == null)
             {
                 return null;

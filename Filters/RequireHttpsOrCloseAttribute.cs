@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LandonAPI.Filters
+namespace LandonApi.Filters
 {
     public class RequireHttpsOrCloseAttribute : RequireHttpsAttribute
     {

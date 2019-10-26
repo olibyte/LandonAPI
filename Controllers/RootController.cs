@@ -1,11 +1,11 @@
-﻿using LandonAPI.Models;
+﻿using LandonApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LandonAPI.Controllers
+namespace LandonApi.Controllers
 {
     [Route("/")]
     [ApiController]

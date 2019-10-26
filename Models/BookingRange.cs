@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace LandonApi.Models
 {
-    public class RootResponse : Resource
+    public class BookingRange
     {
-        public Link Info { get; set; }
+        public DateTimeOffset StartAt { get; set; }
 
-        public Link Rooms { get; set; }
+        public DateTimeOffset EndAt { get; set; }
     }
 }

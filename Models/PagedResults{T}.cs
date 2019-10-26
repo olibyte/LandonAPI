@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace LandonApi.Models
 {
-    public class RootResponse : Resource
+    public class PagedResults<T>
     {
-        public Link Info { get; set; }
+        public IEnumerable<T> Items { get; set; }
 
-        public Link Rooms { get; set; }
+        public int TotalSize { get; set; }
     }
 }

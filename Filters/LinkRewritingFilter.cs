@@ -1,5 +1,5 @@
-﻿using LandonAPI.Infrastructure;
-using LandonAPI.Models;
+﻿using LandonApi.Infrastructure;
+using LandonApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace LandonAPI.Filters
+namespace LandonApi.Filters
 {
     public class LinkRewritingFilter : IAsyncResultFilter
     {
@@ -59,9 +59,9 @@ namespace LandonAPI.Filters
 
                 linkProperty.SetValue(model, rewritten);
 
-                //Special handling of the hidden Self property:
-                //Unwrap into root object
-                if(linkProperty.Name == nameof(Resource.Self))
+                // Special handling of the hidden Self property:
+                // unwrap into the root object
+                if (linkProperty.Name == nameof(Resource.Self))
                 {
                     allProperties
                         .SingleOrDefault(p => p.Name == nameof(Resource.Href))

@@ -1,4 +1,4 @@
-﻿using LandonAPI.Models;
+﻿using LandonApi.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -7,15 +7,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LandonAPI.Filters
+namespace LandonApi.Filters
 {
     public class JsonExceptionFilter : IExceptionFilter
     {
         private readonly IHostingEnvironment _env;
+
         public JsonExceptionFilter(IHostingEnvironment env)
         {
             _env = env;
         }
+
         public void OnException(ExceptionContext context)
         {
             var error = new ApiError();

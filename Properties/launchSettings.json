@@ -4,8 +4,8 @@
     "windowsAuthentication": false, 
     "anonymousAuthentication": true, 
     "iisExpress": {
-      "applicationUrl": "http://localhost:61145",
-      "sslPort": 44377
+      "applicationUrl": "http://localhost:63798",
+      "sslPort": 44350
     }
   },
   "profiles": {
@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "LandonAPI": {
+    "LandonApi": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "api/values",

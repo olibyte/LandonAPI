@@ -5,9 +5,13 @@ using System.Threading.Tasks;
 
 namespace LandonApi.Models
 {
-    public class Room : Resource
+    public class Opening
     {
-        public string Name { get; set; }
+        public Link Room { get; set; }
+
+        public DateTimeOffset StartAt { get; set; }
+
+        public DateTimeOffset EndAt { get; set; }
 
         public decimal Rate { get; set; }
     }

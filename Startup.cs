@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LandonAPI.Filters;
-using LandonAPI.Models;
+using LandonApi.Filters;
+using LandonApi.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -15,11 +15,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using NSwag.AspNetCore;
-using LandonAPI.Services;
+using LandonApi.Services;
 using AutoMapper;
-using LandonAPI.Infrastructure;
+using LandonApi.Infrastructure;
+using Newtonsoft.Json;
 
-namespace LandonAPI
+namespace LandonApi
 {
     public class Startup
     {
@@ -33,13 +34,16 @@ namespace LandonAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<HotelInfo>(Configuration.GetSection("Info"));
+            services.Configure<HotelOptions>(Configuration);
 
-            services.Configure<HotelInfo>(
-                Configuration.GetSection("Info"));
             services.AddScoped<IRoomService, DefaultRoomService>();
+            services.AddScoped<IOpeningService, DefaultOpeningService>();
+            services.AddScoped<IBookingService, DefaultBookingService>();
+            services.AddScoped<IDateLogicService, DefaultDateLogicService>();
 
-            //Use in-memory database for quick dev and testing
-            //TODO: Swap out for a real database in prod.
+            // Use in-memory database for quick dev and testing
+            // TODO: Swap out for a real database in production
             services.AddDbContext<HotelApiDbContext>(
                 options => options.UseInMemoryDatabase("landondb"));
 
@@ -51,7 +55,15 @@ namespace LandonAPI
                         .Add<RequireHttpsOrCloseAttribute>();
                     options.Filters.Add<LinkRewritingFilter>();
                 })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                .AddJsonOptions(options =>
+                {
+                    // These should be the defaults, but we can be explicit:
+                    options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+                    options.SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+                    options.SerializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
+
+                });
 
             services
                 .AddRouting(options => options.LowercaseUrls = true);

@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LandonAPI.Models
+namespace LandonApi.Models
 {
     public class Link
     {
@@ -43,10 +43,11 @@ namespace LandonAPI.Models
         [DefaultValue(GetMethod)]
         public string Method { get; set; }
 
-        //Stores the route name before being rewritten by the LinkRewriting Filter
+        // Stores the route name before being rewritten by the LinkRewritingFilter
         [JsonIgnore]
         public string RouteName { get; set; }
-        //Stores the route parameters before being rewritten by the LinkRewriting Filter
+
+        // Stores the route parameters before being rewritten by the LinkRewritingFilter
         [JsonIgnore]
         public object RouteValues { get; set; }
     }

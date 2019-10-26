@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace LandonAPI
+namespace LandonApi
 {
     public class Program
     {
@@ -23,7 +23,7 @@ namespace LandonAPI
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>();
-
+        
         public static void InitializeDatabase(IWebHost host)
         {
             using (var scope = host.Services.CreateScope())

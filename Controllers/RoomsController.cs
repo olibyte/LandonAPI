@@ -1,5 +1,5 @@
-﻿using LandonAPI.Models;
-using LandonAPI.Services;
+﻿using LandonApi.Models;
+using LandonApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -7,19 +7,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LandonAPI.Controllers
+namespace LandonApi.Controllers
 {
     [Route("/[controller]")]
     [ApiController]
     public class RoomsController : ControllerBase
     {
         private readonly IRoomService _roomService;
+        private readonly IOpeningService _openingService;
 
-        public RoomsController(IRoomService roomService)
+        public RoomsController(
+            IRoomService roomService,
+            IOpeningService openingService)
         {
             _roomService = roomService;
+            _openingService = openingService;
         }
 
+        // GET /rooms
         [HttpGet(Name = nameof(GetAllRooms))]
         [ProducesResponseType(200)]
         public async Task<ActionResult<Collection<Room>>> GetAllRooms()
@@ -34,7 +39,28 @@ namespace LandonAPI.Controllers
 
             return collection;
         }
-        //GET /rooms/{roomId}
+
+        // GET /rooms/openings
+        [HttpGet("openings", Name = nameof(GetAllRoomOpenings))]
+        [ProducesResponseType(200)]
+        public async Task<ActionResult<Collection<Opening>>> GetAllRoomOpenings(
+            [FromQuery] PagingOptions pagingOptions = null)
+        {
+            var openings = await _openingService.GetOpeningsAsync(pagingOptions);
+
+            var collection = new PagedCollection<Opening>()
+            {
+                Self = Link.ToCollection(nameof(GetAllRoomOpenings)),
+                Value = openings.Items.ToArray(),
+                Size = openings.TotalSize,
+                Offset = pagingOptions.Offset.Value,
+                Limit = pagingOptions.Limit.Value
+            };
+
+            return collection;
+        }
+
+        // GET /rooms/{roomId}
         [HttpGet("{roomId}", Name = nameof(GetRoomById))]
         [ProducesResponseType(404)]
         [ProducesResponseType(200)]
