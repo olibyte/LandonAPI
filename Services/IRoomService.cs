@@ -8,7 +8,9 @@ namespace LandonApi.Services
 {
     public interface IRoomService
     {
-        Task<IEnumerable<Room>> GetRoomsAsync();
+        Task<PagedResults<Room>> GetRoomsAsync(
+            PagingOptions pagingOptions,
+            SortOptions<Room, RoomEntity> sortOptions);
 
         Task<Room> GetRoomAsync(Guid id);
     }
