@@ -13,7 +13,7 @@ namespace LandonApi.Models
         // ASP.NET Core calls this validate incoming parameters
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            throw new NotImplementedException();
+            var processor = new SortOptionsProcessor<T, TEntity>(OrderBy);
         }
 
         // The service code will call this to apply these sort options to a database query
