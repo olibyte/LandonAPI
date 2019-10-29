@@ -57,6 +57,27 @@ namespace LandonApi.Infrastructure
             }
         }
 
+        public IQueryable<TEntity> Apply(IQueryable<TEntity> query)
+        {
+            var terms = GetValidTerms().ToArray();
+            if (!terms.Any()) return query;
+
+            var modifiedQuery = query;
+            var useThenBy = false;
+
+            foreach(var term in terms)
+            {
+                var propertyInfo = ExpressionHelper
+                    .GetPropertyInfo<TEntity>(term.Name);
+                var obj = ExpressionHelper.Parameter<TEntity>();
+
+                //Build the LINQ expression backwards:
+                //query = query.OrderBy(x => x.Property);
+
+                //x => x.Property
+            }
+        }
+
         private static IEnumerable<SortTerm> GetTermsFromModel()
             => typeof(T).GetTypeInfo()
             .DeclaredProperties

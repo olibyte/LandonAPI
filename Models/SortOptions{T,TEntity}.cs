@@ -32,7 +32,8 @@ namespace LandonApi.Models
         // The service code will call this to apply these sort options to a database query
         public IQueryable<TEntity> Apply(IQueryable<TEntity> query)
         {
-            throw new NotImplementedException();
+            var processor = new SortOptionsProcessor<T, TEntity>(OrderBy);
+            return processor.Apply(query);
         }
     }
 }
