@@ -75,7 +75,19 @@ namespace LandonApi.Infrastructure
                 //query = query.OrderBy(x => x.Property);
 
                 //x => x.Property
+                var key = ExpressionHelper
+                    .GetPropertyExpression(obj, propertyInfo);
+                var keySelector = ExpressionHelper
+                    .GetLambda(typeof(TEntity), propertyInfo.PropertyType, obj, key);
+
+                //query.OrderBy/ThenBy[Descending](x => x.Property)
+                modifiedQuery = ExpressionHelper
+                    .CallOrderByOrThenBy(modifiedQuery, useThenBy, term.Descending, propertyInfo.PropertyType, keySelector);
+
+                    useThenBy = true;
             }
+
+            return modifiedQuery;
         }
 
         private static IEnumerable<SortTerm> GetTermsFromModel()
