@@ -6,21 +6,26 @@ using System.Threading.Tasks;
 
 namespace LandonApi.Infrastructure
 {
-    public class SortOptionsProcessor<T,TEntity>
+    public class SortOptionsProcessor<T, TEntity>
     {
         private readonly string[] _orderBy;
+
         public SortOptionsProcessor(string[] orderBy)
         {
             _orderBy = orderBy;
         }
+
         public IEnumerable<SortTerm> GetAllTerms()
         {
             if (_orderBy == null) yield break;
-            foreach(var term in _orderBy)
+
+            foreach (var term in _orderBy)
             {
                 if (string.IsNullOrEmpty(term)) continue;
+
                 var tokens = term.Split(' ');
-                if(tokens.Length == 0)
+
+                if (tokens.Length == 0)
                 {
                     yield return new SortTerm { Name = term };
                     continue;
@@ -43,7 +48,7 @@ namespace LandonApi.Infrastructure
 
             var declaredTerms = GetTermsFromModel();
 
-            foreach(var term in queryTerms)
+            foreach (var term in queryTerms)
             {
                 var declaredTerm = declaredTerms
                     .SingleOrDefault(x => x.Name.Equals(term.Name, StringComparison.OrdinalIgnoreCase));
@@ -52,6 +57,7 @@ namespace LandonApi.Infrastructure
                 yield return new SortTerm
                 {
                     Name = declaredTerm.Name,
+                    EntityName = declaredTerm.EntityName,
                     Descending = term.Descending,
                     Default = declaredTerm.Default
                 };
@@ -66,31 +72,33 @@ namespace LandonApi.Infrastructure
             {
                 terms = GetTermsFromModel().Where(t => t.Default).ToArray();
             }
+
             if (!terms.Any()) return query;
 
             var modifiedQuery = query;
             var useThenBy = false;
 
-            foreach(var term in terms)
+            foreach (var term in terms)
             {
                 var propertyInfo = ExpressionHelper
-                    .GetPropertyInfo<TEntity>(term.Name);
+                    .GetPropertyInfo<TEntity>(term.EntityName ?? term.Name);
                 var obj = ExpressionHelper.Parameter<TEntity>();
 
-                //Build the LINQ expression backwards:
-                //query = query.OrderBy(x => x.Property);
+                // Build the LINQ expression backwards:
+                // query = query.OrderBy(x => x.Property);
 
-                //x => x.Property
+                // x => x.Property
                 var key = ExpressionHelper
                     .GetPropertyExpression(obj, propertyInfo);
                 var keySelector = ExpressionHelper
                     .GetLambda(typeof(TEntity), propertyInfo.PropertyType, obj, key);
 
-                //query.OrderBy/ThenBy[Descending](x => x.Property)
+                // query.OrderBy/ThenBy[Descending](x => x.Property)
                 modifiedQuery = ExpressionHelper
-                    .CallOrderByOrThenBy(modifiedQuery, useThenBy, term.Descending, propertyInfo.PropertyType, keySelector);
+                    .CallOrderByOrThenBy(
+                        modifiedQuery, useThenBy, term.Descending, propertyInfo.PropertyType, keySelector);
 
-                    useThenBy = true;
+                useThenBy = true;
             }
 
             return modifiedQuery;
@@ -100,9 +108,10 @@ namespace LandonApi.Infrastructure
             => typeof(T).GetTypeInfo()
             .DeclaredProperties
             .Where(p => p.GetCustomAttributes<SortableAttribute>().Any())
-            .Select(p => new SortTerm 
-            { 
+            .Select(p => new SortTerm
+            {
                 Name = p.Name,
+                EntityName = p.GetCustomAttribute<SortableAttribute>().EntityProperty,
                 Default = p.GetCustomAttribute<SortableAttribute>().Default
             });
     }

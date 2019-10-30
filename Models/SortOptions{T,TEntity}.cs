@@ -21,7 +21,7 @@ namespace LandonApi.Models
             var invalidTerms = processor.GetAllTerms().Select(x => x.Name)
                 .Except(validTerms, StringComparer.OrdinalIgnoreCase);
 
-            foreach(var term in invalidTerms)
+            foreach (var term in invalidTerms)
             {
                 yield return new ValidationResult(
                     $"Invalid sort term '{term}'.",

@@ -20,8 +20,8 @@ namespace LandonApi.Infrastructure
 
             CreateMap<OpeningEntity, Opening>()
                 .ForMember(dest => dest.Rate, opt => opt.MapFrom(src => src.Rate / 100m))
-                .ForMember(dest => dest.StartAt, opt => opt.MapFrom(src => src.StartAt.UtcDateTime))
-                .ForMember(dest => dest.EndAt, opt => opt.MapFrom(src => src.EndAt.UtcDateTime))
+                .ForMember(dest => dest.StartAt, opt => opt.MapFrom(src => src.StartAt.ToUniversalTime()))
+                .ForMember(dest => dest.EndAt, opt => opt.MapFrom(src => src.EndAt.ToUniversalTime()))
                 .ForMember(dest => dest.Room, opt => opt.MapFrom(src =>
                     Link.To(
                         nameof(Controllers.RoomsController.GetRoomById),

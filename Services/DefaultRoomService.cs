@@ -38,9 +38,11 @@ namespace LandonApi.Services
 
         public async Task<PagedResults<Room>> GetRoomsAsync(
             PagingOptions pagingOptions,
-            SortOptions<Room, RoomEntity> sortOptions)
+            SortOptions<Room, RoomEntity> sortOptions,
+            SearchOptions<Room, RoomEntity> searchOptions)
         {
             IQueryable<RoomEntity> query = _context.Rooms;
+            query = searchOptions.Apply(query);
             query = sortOptions.Apply(query);
 
             var size = await query.CountAsync();
