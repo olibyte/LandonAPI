@@ -54,9 +54,34 @@ namespace LandonApi.Infrastructure
                 };
             }
         }
+        public IEnumerable<SearchTerm> GetValidTerms()
+        {
+            var queryTerms = GetAllTerms()
+                .Where(x => x.ValidSyntax)
+                .ToArray();
+
+            if (!queryTerms.Any()) yield break;
+            var declaredTerms = GetTermsFromModel();
+            foreach(var term in queryTerms)
+            {
+                var declaredTerm = declaredTerms
+                    .SingleOrDefault(x => x.Name.Equals(term.Name, StringComparison.OrdinalIgnoreCase));
+                if (declaredTerm == null) continue;
+
+                yield return new SearchTerm
+                {
+                    ValidSyntax = term.ValidSyntax,
+                    Name = declaredTerm.Name,
+                    Operator = declaredTerm.Operator,
+                    Value = declaredTerm.Value
+                };
+            }
+        }
+
         public static IEnumerable<SearchTerm> GetTermsFromModel()
             => typeof(T).GetTypeInfo()
             .DeclaredProperties
-            .Where(p => p.GetCustomAttribute<SearchableAttribut>)
+            .Where(p => p.GetCustomAttributes<SearchableAttribute>().Any())
+            .Select(p => new SearchTerm { Name = p.Name });
     }
 }
