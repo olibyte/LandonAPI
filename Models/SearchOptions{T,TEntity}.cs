@@ -12,7 +12,8 @@ namespace LandonApi.Models
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            throw new NotImplementedException();
+            var processor = new SearchOptionsProcessor<T, TEntity>(Search);
+
         }
 
         public IQueryable<TEntity> Apply(IQueryable<TEntity> query)
