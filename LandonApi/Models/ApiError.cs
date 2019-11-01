@@ -12,6 +12,11 @@ namespace LandonApi.Models
         {
         }
 
+        public ApiError(string message)
+        {
+            Message = message;
+        }
+
         public ApiError(ModelStateDictionary modelState)
         {
             Message = "Invalid parameters.";

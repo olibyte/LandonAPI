@@ -16,7 +16,7 @@ namespace LandonApi.Models
             var processor = new SearchOptionsProcessor<T, TEntity>(Search);
 
             var validTerms = processor.GetValidTerms().Select(x => x.Name);
-            var invalidTerms = processor.GetValidTerms().Select(x => x.Name)
+            var invalidTerms = processor.GetAllTerms().Select(x => x.Name)
                 .Except(validTerms, StringComparer.OrdinalIgnoreCase);
 
             foreach (var term in invalidTerms)
@@ -25,7 +25,6 @@ namespace LandonApi.Models
                     $"Invalid search term '{term}'.",
                     new[] { nameof(Search) });
             }
-
         }
 
         public IQueryable<TEntity> Apply(IQueryable<TEntity> query)

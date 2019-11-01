@@ -10,7 +10,8 @@ namespace LandonApi.Services
     {
         Task<PagedResults<Opening>> GetOpeningsAsync(
             PagingOptions pagingOptions,
-            SortOptions<Opening, OpeningEntity> sortOptions);
+            SortOptions<Opening, OpeningEntity> sortOptions,
+            SearchOptions<Opening, OpeningEntity> searchOptions);
 
         Task<IEnumerable<BookingRange>> GetConflictingSlots(
             Guid roomId,

@@ -7,22 +7,25 @@ using System.Threading.Tasks;
 
 namespace LandonApi.Infrastructure
 {
-    public class SearchOptionsProcessor<T,TEntity>
+    public class SearchOptionsProcessor<T, TEntity>
     {
         private readonly string[] _searchQuery;
+
         public SearchOptionsProcessor(string[] searchQuery)
         {
             _searchQuery = searchQuery;
         }
+
         public IEnumerable<SearchTerm> GetAllTerms()
         {
             if (_searchQuery == null) yield break;
+
             foreach (var expression in _searchQuery)
             {
                 if (string.IsNullOrEmpty(expression)) continue;
 
-                //Each expression looks like:
-                //"fieldname op value"
+                // Each expression looks like:
+                // "fieldName op value..."
                 var tokens = expression.Split(' ');
 
                 if (tokens.Length == 0)
@@ -33,9 +36,10 @@ namespace LandonApi.Infrastructure
                         Name = expression
                     };
 
-                    continue;  
+                    continue;
                 }
-                if(tokens.Length < 3)
+
+                if (tokens.Length < 3)
                 {
                     yield return new SearchTerm
                     {
@@ -55,6 +59,7 @@ namespace LandonApi.Infrastructure
                 };
             }
         }
+
         public IEnumerable<SearchTerm> GetValidTerms()
         {
             var queryTerms = GetAllTerms()
@@ -62,8 +67,10 @@ namespace LandonApi.Infrastructure
                 .ToArray();
 
             if (!queryTerms.Any()) yield break;
+
             var declaredTerms = GetTermsFromModel();
-            foreach(var term in queryTerms)
+
+            foreach (var term in queryTerms)
             {
                 var declaredTerm = declaredTerms
                     .SingleOrDefault(x => x.Name.Equals(term.Name, StringComparison.OrdinalIgnoreCase));
@@ -73,12 +80,14 @@ namespace LandonApi.Infrastructure
                 {
                     ValidSyntax = term.ValidSyntax,
                     Name = declaredTerm.Name,
-                    Operator = declaredTerm.Operator,
-                    Value = declaredTerm.Value,
+                    EntityName = declaredTerm.EntityName,
+                    Operator = term.Operator,
+                    Value = term.Value,
                     ExpressionProvider = declaredTerm.ExpressionProvider
                 };
             }
         }
+
         public IQueryable<TEntity> Apply(IQueryable<TEntity> query)
         {
             var terms = GetValidTerms().ToArray();
@@ -86,38 +95,48 @@ namespace LandonApi.Infrastructure
 
             var modifiedQuery = query;
 
-            foreach(var term in terms)
+            foreach (var term in terms)
             {
-                var propertyInfo = ExpressionHelper.GetPropertyInfo<TEntity>(term.Name);
+                var propertyInfo = ExpressionHelper
+                    .GetPropertyInfo<TEntity>(term.EntityName ?? term.Name);
                 var obj = ExpressionHelper.Parameter<TEntity>();
 
-                //Build up the LINQ Expression backwards:
-                //query = query.Where(x => x.Property == "Value");
+                // Build up the LINQ expression backwards:
+                // query = query.Where(x => x.Property == "Value");
 
-                //x.Property
+                // x.Property
                 var left = ExpressionHelper.GetPropertyExpression(obj, propertyInfo);
                 // "Value"
                 var right = term.ExpressionProvider.GetValue(term.Value);
 
-                //x.Property == "Value"
-                var comparisonExpression = Expression.Equal(left, right);
+                // x.Property == "Value"
+                var comparisonExpression = term.ExpressionProvider
+                    .GetComparison(left, term.Operator, right);
 
-                //x => x.Property == "Value"
+                // x => x.Property == "Value"
                 var lambdaExpression = ExpressionHelper
                     .GetLambda<TEntity, bool>(obj, comparisonExpression);
 
-                //query = query.Where...
+                // query = query.Where...
                 modifiedQuery = ExpressionHelper.CallWhere(modifiedQuery, lambdaExpression);
             }
+
             return modifiedQuery;
         }
-        public static IEnumerable<SearchTerm> GetTermsFromModel()
+
+        private static IEnumerable<SearchTerm> GetTermsFromModel()
             => typeof(T).GetTypeInfo()
             .DeclaredProperties
             .Where(p => p.GetCustomAttributes<SearchableAttribute>().Any())
-            .Select(p => new SearchTerm 
-            { Name = p.Name,
-                ExpressionProvider = p.GetCustomAttribute<SearchableAttribute>().ExpressionProvider
+            .Select(p =>
+            {
+                var attribute = p.GetCustomAttribute<SearchableAttribute>();
+                return new SearchTerm
+                {
+                    Name = p.Name,
+                    EntityName = attribute.EntityProperty,
+                    ExpressionProvider = attribute.ExpressionProvider
+                };
             });
     }
 }
