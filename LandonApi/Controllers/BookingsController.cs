@@ -30,6 +30,16 @@ namespace LandonApi.Controllers
 
             return booking;
         }
+
+        // DELETE /bookings/{bookingId}
+        [HttpDelete("{bookingId}", Name = nameof(DeleteBookingById))]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> DeleteBookingById(Guid bookingId)
+        {
+            // TODO: Authorize that the user is allowed to do this!
+            await _bookingService.DeleteBookingAsync(bookingId);
+            return NoContent();
+        }
     }
 
 }

@@ -57,6 +57,16 @@ namespace LandonApi.Services
             return id;
         }
 
+        public async Task DeleteBookingAsync(Guid bookingId)
+        {
+            var booking = await _context.Bookings
+                .SingleOrDefaultAsync(b => b.Id == bookingId);
+            if (booking == null) return;
+
+            _context.Bookings.Remove(booking);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<Booking> GetBookingAsync(Guid bookingId)
         {
             var entity = await _context.Bookings

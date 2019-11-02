@@ -1,4 +1,5 @@
-﻿using LandonApi.Models;
+﻿using LandonApi.Infrastructure;
+using LandonApi.Models;
 using LandonApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,12 @@ namespace LandonApi.Controllers
                 rooms.TotalSize,
                 pagingOptions);
             collection.Openings = Link.ToCollection(nameof(GetAllRoomOpenings));
+            collection.RoomsQuery = FormMetadata.FromResource<Room>(
+                Link.ToForm(
+                    nameof(GetAllRooms),
+                    null,
+                    Link.GetMethod,
+                    Form.QueryRelation));
 
             return collection;
         }
@@ -73,11 +80,19 @@ namespace LandonApi.Controllers
             var openings = await _openingService.GetOpeningsAsync(
                 pagingOptions, sortOptions, searchOptions);
 
-            var collection = PagedCollection<Opening>.Create(
+            var collection = PagedCollection<Opening>.Create<OpeningsResponse>(
                 Link.ToCollection(nameof(GetAllRoomOpenings)),
                 openings.Items.ToArray(),
                 openings.TotalSize,
                 pagingOptions);
+
+            collection.OpeningsQuery = FormMetadata.FromResource<Opening>(
+                Link.ToForm(
+                    nameof(GetAllRoomOpenings),
+                    null,
+                    Link.GetMethod,
+                    Form.QueryRelation));
+
 
             return collection;
         }
