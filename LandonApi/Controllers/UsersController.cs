@@ -58,5 +58,23 @@ namespace LandonApi.Controllers
             // If not, only Admin roles should be able to view arbitrary users.
             throw new NotImplementedException();
         }
+
+        //POST /users
+        [HttpPost(Name = nameof(RegisterUser))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(201)]
+        public async Task<IActionResult> RegisterUser(
+            [FromBody] RegisterForm form)
+        {
+            var (succeeded, message) = await _userService.CreateUserAsync(form);
+            if (succeeded) return Created("todo", null);
+            //TODO: Link (no userinfo route yet)
+
+            return BadRequest(new ApiError
+            {
+                Message = "Registration failed.",
+                Detail = message
+            });
+        }
     }
 }
