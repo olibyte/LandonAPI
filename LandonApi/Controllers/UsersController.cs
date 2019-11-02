@@ -59,7 +59,7 @@ namespace LandonApi.Controllers
             throw new NotImplementedException();
         }
 
-        //POST /users
+        // POST /users
         [HttpPost(Name = nameof(RegisterUser))]
         [ProducesResponseType(400)]
         [ProducesResponseType(201)]
@@ -67,8 +67,9 @@ namespace LandonApi.Controllers
             [FromBody] RegisterForm form)
         {
             var (succeeded, message) = await _userService.CreateUserAsync(form);
-            if (succeeded) return Created("todo", null);
-            //TODO: Link (no userinfo route yet)
+            if (succeeded) return Created(
+                Url.Link(nameof(UserinfoController.Userinfo), null),
+                null);
 
             return BadRequest(new ApiError
             {

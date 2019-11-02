@@ -59,8 +59,8 @@ namespace LandonApi.Infrastructure
 
             CreateMap<UserEntity, User>()
                 .ForMember(dest => dest.Self, opt => opt.MapFrom(src =>
-                Link.To(nameof(Controllers.UsersController.GetUserById),
-                new { userId = src.Id })));
+                    Link.To(nameof(Controllers.UsersController.GetUserById),
+                    new { userId = src.Id })));
         }
     }
 }

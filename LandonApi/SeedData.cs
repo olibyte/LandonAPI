@@ -68,15 +68,15 @@ namespace LandonApi
             UserManager<UserEntity> userManager)
         {
             var dataExists = roleManager.Roles.Any() || userManager.Users.Any();
-            if(dataExists)
+            if (dataExists)
             {
                 return;
             }
 
-            //Add a test role
+            // Add a test role
             await roleManager.CreateAsync(new UserRoleEntity("Admin"));
 
-            //Add a test user
+            // Add a test user
             var user = new UserEntity
             {
                 Email = "admin@landon.local",
@@ -88,7 +88,7 @@ namespace LandonApi
 
             await userManager.CreateAsync(user, "Supersecret123!!");
 
-            //Put the user in the admin role
+            // Put the user in the admin role
             await userManager.AddToRoleAsync(user, "Admin");
             await userManager.UpdateAsync(user);
         }
