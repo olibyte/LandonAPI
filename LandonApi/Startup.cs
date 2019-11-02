@@ -44,6 +44,7 @@ namespace LandonApi
             services.AddScoped<IOpeningService, DefaultOpeningService>();
             services.AddScoped<IBookingService, DefaultBookingService>();
             services.AddScoped<IDateLogicService, DefaultDateLogicService>();
+            services.AddScoped<IUserService, DefaultUserService>();
 
             // Use in-memory database for quick dev and testing
             // TODO: Swap out for a real database in production
