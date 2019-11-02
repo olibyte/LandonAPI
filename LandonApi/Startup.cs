@@ -20,6 +20,8 @@ using AutoMapper;
 using LandonApi.Infrastructure;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Identity;
+using AspNet.Security.OpenIdConnect.Primitives;
+using OpenIddict.Validation;
 
 namespace LandonApi
 {
@@ -49,7 +51,43 @@ namespace LandonApi
             // Use in-memory database for quick dev and testing
             // TODO: Swap out for a real database in production
             services.AddDbContext<HotelApiDbContext>(
-                options => options.UseInMemoryDatabase("landondb"));
+                options =>
+                {
+                    options.UseInMemoryDatabase("landondb");
+                    options.UseOpenIddict<Guid>();
+                });
+
+            // Add OpenIddict services
+            services.AddOpenIddict()
+                .AddCore(options =>
+                {
+                    options.UseEntityFrameworkCore()
+                        .UseDbContext<HotelApiDbContext>()
+                        .ReplaceDefaultEntities<Guid>();
+                })
+                .AddServer(options =>
+                {
+                    options.UseMvc();
+
+                    options.EnableTokenEndpoint("/token");
+
+                    options.AllowPasswordFlow();
+                    options.AcceptAnonymousClients();
+                })
+                .AddValidation();
+
+            // ASP.NET Core Identity should use the same claim names as OpenIddict
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.ClaimsIdentity.UserNameClaimType = OpenIdConnectConstants.Claims.Name;
+                options.ClaimsIdentity.UserIdClaimType = OpenIdConnectConstants.Claims.Subject;
+                options.ClaimsIdentity.RoleClaimType = OpenIdConnectConstants.Claims.Role;
+            });
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = OpenIddictValidationDefaults.AuthenticationScheme;
+            });
 
             // Add ASP.NET Core Identity
             AddIdentityCoreServices(services);
@@ -124,6 +162,8 @@ namespace LandonApi
             {
                 app.UseHsts();
             }
+
+            app.UseAuthentication();
 
             app.UseResponseCaching();
 
