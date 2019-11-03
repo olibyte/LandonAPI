@@ -11,6 +11,7 @@ namespace LandonApi.Models
     {
         public const string GetMethod = "GET";
         public const string PostMethod = "POST";
+        public const string DeleteMethod = "DELETE";
 
         public static Link To(string routeName, object routeValues = null)
             => new Link

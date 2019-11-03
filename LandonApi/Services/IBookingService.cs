@@ -17,6 +17,21 @@ namespace LandonApi.Services
             DateTimeOffset endAt);
 
         Task DeleteBookingAsync(Guid bookingId);
+
+        Task<PagedResults<Booking>> GetBookingsAsync(
+            PagingOptions pagingOptions,
+            SortOptions<Booking, BookingEntity> sortOptions,
+            SearchOptions<Booking, BookingEntity> searchOptions);
+
+        Task<Booking> GetBookingForUserIdAsync(
+            Guid bookingId,
+            Guid userId);
+
+        Task<PagedResults<Booking>> GetBookingsForUserIdAsync(
+            Guid userId,
+            PagingOptions pagingOptions,
+            SortOptions<Booking, BookingEntity> sortOptions,
+            SearchOptions<Booking, BookingEntity> searchOptions);
     }
 
 }

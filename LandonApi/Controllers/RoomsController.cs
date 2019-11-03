@@ -1,6 +1,7 @@
 ﻿using LandonApi.Infrastructure;
 using LandonApi.Models;
 using LandonApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -19,6 +20,7 @@ namespace LandonApi.Controllers
         private readonly IOpeningService _openingService;
         private readonly IDateLogicService _dateLogicService;
         private readonly IBookingService _bookingService;
+        private readonly IUserService _userService;
         private readonly PagingOptions _defaultPagingOptions;
 
         public RoomsController(
@@ -26,12 +28,14 @@ namespace LandonApi.Controllers
             IOpeningService openingService,
             IDateLogicService dateLogicService,
             IBookingService bookingService,
+            IUserService userService,
             IOptions<PagingOptions> defaultPagingOptionsWrapper)
         {
             _roomService = roomService;
             _openingService = openingService;
             _dateLogicService = dateLogicService;
             _bookingService = bookingService;
+            _userService = userService;
             _defaultPagingOptions = defaultPagingOptionsWrapper.Value;
         }
 
@@ -100,48 +104,94 @@ namespace LandonApi.Controllers
 
         // GET /rooms/{roomId}
         [HttpGet("{roomId}", Name = nameof(GetRoomById))]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(304)]
         [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ResponseCache(CacheProfileName = "Resource")]
+        [Etag]
         public async Task<ActionResult<Room>> GetRoomById(Guid roomId)
         {
             var room = await _roomService.GetRoomAsync(roomId);
             if (room == null) return NotFound();
 
+            if (!Request.GetEtagHandler().NoneMatch(room))
+            {
+                return StatusCode(304, room);
+            }
+
             return room;
         }
 
-        // TODO authentication!
         // POST /rooms/{roomId}/bookings
+        [Authorize]
         [HttpPost("{roomId}/bookings", Name = nameof(CreateBookingForRoom))]
-        [ProducesResponseType(404)]
         [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
         [ProducesResponseType(201)]
         public async Task<ActionResult> CreateBookingForRoom(
-            Guid roomId, [FromBody] BookingForm bookingForm)
+            Guid roomId, [FromBody] BookingForm form)
         {
+            var userId = await _userService.GetUserIdAsync(User);
+            if (userId == null) return Unauthorized();
+
             var room = await _roomService.GetRoomAsync(roomId);
             if (room == null) return NotFound();
 
             var minimumStay = _dateLogicService.GetMinimumStay();
-            bool tooShort = (bookingForm.EndAt.Value - bookingForm.StartAt.Value) < minimumStay;
+            bool tooShort = (form.EndAt.Value - form.StartAt.Value) < minimumStay;
             if (tooShort) return BadRequest(new ApiError(
                 $"The minimum booking duration is {minimumStay.TotalHours} hours."));
 
             var conflictedSlots = await _openingService.GetConflictingSlots(
-                roomId, bookingForm.StartAt.Value, bookingForm.EndAt.Value);
+                roomId, form.StartAt.Value, form.EndAt.Value);
             if (conflictedSlots.Any()) return BadRequest(new ApiError(
                 "This time conflicts with an existing booking."));
 
-            // Get the current user (TODO)
-            var userId = Guid.NewGuid();
-
             var bookingId = await _bookingService.CreateBookingAsync(
-                userId, roomId, bookingForm.StartAt.Value, bookingForm.EndAt.Value);
+                userId.Value, roomId, form.StartAt.Value, form.EndAt.Value);
 
             return Created(
                 Url.Link(nameof(BookingsController.GetBookingById),
                 new { bookingId }),
                 null);
+        }
+
+        [HttpGet("{roomId}/openings", Name = nameof(GetRoomOpeningsByRoomId))]
+        [ResponseCache(CacheProfileName = "Collection",
+               VaryByQueryKeys = new[] { "roomId", "offset", "limit", "orderBy", "search" })]
+        public async Task<IActionResult> GetRoomOpeningsByRoomId(
+            Guid roomId,
+            [FromQuery] PagingOptions pagingOptions,
+            [FromQuery] SortOptions<Opening, OpeningEntity> sortOptions,
+            [FromQuery] SearchOptions<Opening, OpeningEntity> searchOptions)
+        {
+            pagingOptions.Offset = pagingOptions.Offset ?? _defaultPagingOptions.Offset;
+            pagingOptions.Limit = pagingOptions.Limit ?? _defaultPagingOptions.Limit;
+
+            var room = await _roomService.GetRoomAsync(roomId);
+            if (room == null) return NotFound();
+
+            var openings = await _openingService.GetOpeningsByRoomIdAsync(
+                roomId,
+                pagingOptions,
+                sortOptions,
+                searchOptions);
+
+            var collectionLink = Link.ToCollection(
+                nameof(GetRoomOpeningsByRoomId), new { roomId });
+
+            var collection = PagedCollection<Opening>.Create<OpeningsResponse>(
+                collectionLink,
+                openings.Items.ToArray(),
+                openings.TotalSize,
+                pagingOptions);
+
+            collection.OpeningsQuery = FormMetadata.FromResource<Opening>(
+                Link.ToForm(nameof(GetRoomOpeningsByRoomId),
+                            new { roomId }, Link.GetMethod, Form.QueryRelation));
+
+            return Ok(collection);
         }
     }
 }

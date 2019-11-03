@@ -32,6 +32,29 @@ namespace LandonApi.Services
         {
             var rooms = await _context.Rooms.ToArrayAsync();
 
+            return await GetOpeningsForRoomsAsync(
+                rooms, pagingOptions, sortOptions, searchOptions);
+        }
+
+        public async Task<PagedResults<Opening>> GetOpeningsByRoomIdAsync(
+            Guid roomId,
+            PagingOptions pagingOptions,
+            SortOptions<Opening, OpeningEntity> sortOptions,
+            SearchOptions<Opening, OpeningEntity> searchOptions)
+        {
+            var room = await _context.Rooms.SingleOrDefaultAsync(r => r.Id == roomId);
+            if (room == null) throw new ArgumentException("Invalid room id.");
+
+            return await GetOpeningsForRoomsAsync(
+                new[] { room }, pagingOptions, sortOptions, searchOptions);
+        }
+
+        private async Task<PagedResults<Opening>> GetOpeningsForRoomsAsync(
+            RoomEntity[] rooms,
+            PagingOptions pagingOptions,
+            SortOptions<Opening, OpeningEntity> sortOptions,
+            SearchOptions<Opening, OpeningEntity> searchOptions)
+        {
             var allOpenings = new List<OpeningEntity>();
 
             foreach (var room in rooms)

@@ -95,14 +95,12 @@ namespace LandonApi
             services
                 .AddMvc(options =>
                 {
-                    options.CacheProfiles.Add("Static", new CacheProfile
-                    {
-                        Duration = 86400
-                    });
+                    options.CacheProfiles.Add("Static", new CacheProfile { Duration = 86400 });
+                    options.CacheProfiles.Add("Collection", new CacheProfile { Duration = 60 });
+                    options.CacheProfiles.Add("Resource", new CacheProfile { Duration = 180 });
 
                     options.Filters.Add<JsonExceptionFilter>();
-                    options.Filters
-                        .Add<RequireHttpsOrCloseAttribute>();
+                    options.Filters.Add<RequireHttpsOrCloseAttribute>();
                     options.Filters.Add<LinkRewritingFilter>();
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
@@ -142,6 +140,15 @@ namespace LandonApi
             });
 
             services.AddResponseCaching();
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ViewAllUsersPolicy",
+                    p => p.RequireAuthenticatedUser().RequireRole("Admin"));
+
+                options.AddPolicy("ViewAllBookingsPolicy",
+                    p => p.RequireAuthenticatedUser().RequireRole("Admin"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

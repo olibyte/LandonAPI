@@ -78,12 +78,21 @@ namespace LandonApi.Services
             return mapper.Map<User>(entity);
         }
 
+        public async Task<User> GetUserByIdAsync(Guid userId)
+        {
+            var entity = await _userManager.Users
+                .SingleOrDefaultAsync(x => x.Id == userId);
+            var mapper = _mappingConfiguration.CreateMapper();
+
+            return mapper.Map<User>(entity);
+        }
+
         public async Task<Guid?> GetUserIdAsync(ClaimsPrincipal principal)
         {
-            var user = await _userManager.GetUserAsync(principal);
-            if (user == null) return null;
+            var entity = await _userManager.GetUserAsync(principal);
+            if (entity == null) return null;
 
-            return user.Id;
+            return entity.Id;
         }
 
     }

@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using LandonApi.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,16 +14,19 @@ namespace LandonApi.Services
     {
         private readonly HotelApiDbContext _context;
         private readonly IDateLogicService _dateLogicService;
-        private readonly IMapper _mapper;
+        private readonly IConfigurationProvider _mappingConfiguration;
+        private readonly UserManager<UserEntity> _userManager;
 
         public DefaultBookingService(
             HotelApiDbContext context,
             IDateLogicService dateLogicService,
-            IMapper mapper)
+            IConfigurationProvider mappingConfiguration,
+            UserManager<UserEntity> userManager)
         {
             _context = context;
             _dateLogicService = dateLogicService;
-            _mapper = mapper;
+            _mappingConfiguration = mappingConfiguration;
+            _userManager = userManager;
         }
 
         public async Task<Guid> CreateBookingAsync(
@@ -30,6 +35,9 @@ namespace LandonApi.Services
             DateTimeOffset startAt,
             DateTimeOffset endAt)
         {
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Id == userId);
+            if (user == null) throw new InvalidOperationException("You must be logged in.");
+
             var room = await _context.Rooms
                 .SingleOrDefaultAsync(r => r.Id == roomId);
             if (room == null) throw new ArgumentException("Invalid room ID.");
@@ -48,6 +56,7 @@ namespace LandonApi.Services
                 StartAt = startAt.ToUniversalTime(),
                 EndAt = endAt.ToUniversalTime(),
                 Total = total,
+                User = user,
                 Room = room
             });
 
@@ -70,11 +79,81 @@ namespace LandonApi.Services
         public async Task<Booking> GetBookingAsync(Guid bookingId)
         {
             var entity = await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Room)
                 .SingleOrDefaultAsync(b => b.Id == bookingId);
 
             if (entity == null) return null;
 
-            return _mapper.Map<Booking>(entity);
+            var mapper = _mappingConfiguration.CreateMapper();
+            return mapper.Map<Booking>(entity);
+        }
+
+        public async Task<Booking> GetBookingForUserIdAsync(Guid bookingId, Guid userId)
+        {
+            var entity = await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Room)
+                .SingleOrDefaultAsync(b => b.Id == bookingId && b.User.Id == userId);
+
+            if (entity == null) return null;
+
+            var mapper = _mappingConfiguration.CreateMapper();
+            return mapper.Map<Booking>(entity);
+        }
+
+        public async Task<PagedResults<Booking>> GetBookingsAsync(
+            PagingOptions pagingOptions,
+            SortOptions<Booking, BookingEntity> sortOptions,
+            SearchOptions<Booking, BookingEntity> searchOptions)
+        {
+            IQueryable<BookingEntity> query = _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Room);
+            query = searchOptions.Apply(query);
+            query = sortOptions.Apply(query);
+
+            var size = await query.CountAsync();
+
+            var items = await query
+                .Skip(pagingOptions.Offset.Value)
+                .Take(pagingOptions.Limit.Value)
+                .ProjectTo<Booking>(_mappingConfiguration)
+                .ToArrayAsync();
+
+            return new PagedResults<Booking>
+            {
+                Items = items,
+                TotalSize = size
+            };
+        }
+
+        public async Task<PagedResults<Booking>> GetBookingsForUserIdAsync(
+            Guid userId,
+            PagingOptions pagingOptions,
+            SortOptions<Booking, BookingEntity> sortOptions,
+            SearchOptions<Booking, BookingEntity> searchOptions)
+        {
+            IQueryable<BookingEntity> query = _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Room)
+                .Where(b => b.User.Id == userId);
+            query = searchOptions.Apply(query);
+            query = sortOptions.Apply(query);
+
+            var size = await query.CountAsync();
+
+            var items = await query
+                .Skip(pagingOptions.Offset.Value)
+                .Take(pagingOptions.Limit.Value)
+                .ProjectTo<Booking>(_mappingConfiguration)
+                .ToArrayAsync();
+
+            return new PagedResults<Booking>
+            {
+                Items = items,
+                TotalSize = size
+            };
         }
     }
 }

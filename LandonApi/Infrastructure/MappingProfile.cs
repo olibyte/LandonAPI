@@ -17,6 +17,9 @@ namespace LandonApi.Infrastructure
                     Link.To(
                         nameof(Controllers.RoomsController.GetRoomById),
                         new { roomId = src.Id })))
+                .ForMember(dest => dest.Openings, opt => opt.MapFrom(src =>
+                    Link.To(nameof(Controllers.RoomsController.GetRoomOpeningsByRoomId),
+                            new { roomId = src.Id })))
                 .ForMember(dest => dest.Book, opt => opt.MapFrom(src =>
                     FormMetadata.FromModel(
                         new BookingForm(),
@@ -48,6 +51,9 @@ namespace LandonApi.Infrastructure
 
             CreateMap<BookingEntity, Booking>()
                 .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.Total / 100m))
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src =>
+                    Link.To(nameof(Controllers.UsersController.GetUserById),
+                            new { userId = src.User.Id })))
                 .ForMember(dest => dest.Self, opt => opt.MapFrom(src =>
                     Link.To(
                         nameof(Controllers.BookingsController.GetBookingById),
@@ -55,7 +61,14 @@ namespace LandonApi.Infrastructure
                 .ForMember(dest => dest.Room, opt => opt.MapFrom(src =>
                     Link.To(
                         nameof(Controllers.RoomsController.GetRoomById),
-                        new { roomId = src.Id })));
+                        new { roomId = src.Room.Id })))
+                .ForMember(dest => dest.Cancel, opt => opt.MapFrom(src =>
+                    new Link
+                    {
+                        RouteName = nameof(Controllers.BookingsController.DeleteBookingById),
+                        RouteValues = new { bookingId = src.Id },
+                        Method = Link.DeleteMethod
+                    }));
 
             CreateMap<UserEntity, User>()
                 .ForMember(dest => dest.Self, opt => opt.MapFrom(src =>

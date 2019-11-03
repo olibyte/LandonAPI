@@ -18,6 +18,7 @@ namespace LandonApi.Controllers
         public InfoController(IOptions<HotelInfo> hotelInfoWrapper)
         {
             _hotelInfo = hotelInfoWrapper.Value;
+            _hotelInfo.Self = Link.To(nameof(GetInfo));
         }
 
         [HttpGet(Name = nameof(GetInfo))]
@@ -27,8 +28,6 @@ namespace LandonApi.Controllers
         [Etag]
         public ActionResult<HotelInfo> GetInfo()
         {
-            _hotelInfo.Href = Url.Link(nameof(GetInfo), null);
-
             if (!Request.GetEtagHandler().NoneMatch(_hotelInfo))
             {
                 return StatusCode(304, _hotelInfo);

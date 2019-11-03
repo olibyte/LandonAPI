@@ -18,6 +18,8 @@ namespace LandonApi.Services
 
         Task<Guid?> GetUserIdAsync(ClaimsPrincipal principal);
 
+        Task<User> GetUserByIdAsync(Guid userId);
+
         Task<User> GetUserAsync(ClaimsPrincipal user);
     }
 }

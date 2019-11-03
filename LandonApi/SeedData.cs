@@ -19,12 +19,14 @@ namespace LandonApi
 
             await AddTestData(
                 services.GetRequiredService<HotelApiDbContext>(),
-                services.GetRequiredService<IDateLogicService>());
+                services.GetRequiredService<IDateLogicService>(),
+                services.GetRequiredService<UserManager<UserEntity>>());
         }
 
         public static async Task AddTestData(
             HotelApiDbContext context,
-            IDateLogicService dateLogicService)
+            IDateLogicService dateLogicService,
+            UserManager<UserEntity> userManager)
         {
             if (context.Rooms.Any())
             {
@@ -50,6 +52,9 @@ namespace LandonApi
             var start = dateLogicService.AlignStartTime(today);
             var end = start.Add(dateLogicService.GetMinimumStay());
 
+            var adminUser = userManager.Users
+                .SingleOrDefault(u => u.Email == "admin@landon.local");
+
             context.Bookings.Add(new BookingEntity
             {
                 Id = Guid.Parse("2eac8dea-2749-42b3-9d21-8eb2fc0fd6bd"),
@@ -58,6 +63,7 @@ namespace LandonApi
                 StartAt = start,
                 EndAt = end,
                 Total = oxford.Rate,
+                User = adminUser
             });
 
             await context.SaveChangesAsync();
